@@ -3,18 +3,12 @@ import PropTypes from 'prop-types';
 
 /**
  * UploadBox Component
- * Handles file drag & drop and selection. Displays a preview of the selected image.
- * 
- * @param {Object} props
- * @param {Function} props.onFileSelect - Callback when a file is selected (File object).
- * @param {File} props.currentFile - The currently selected file (for preview persistence).
- * @param {boolean} props.disabled - Whether interaction is disabled (e.g. processing).
+ * Handles file drag & drop and selection. Matches the Neo design style.
  */
 const UploadBox = ({ onFileSelect, currentFile, disabled = false }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
 
-    // Create preview URL when file changes
     React.useEffect(() => {
         if (currentFile) {
             const url = URL.createObjectURL(currentFile);
@@ -44,9 +38,6 @@ const UploadBox = ({ onFileSelect, currentFile, disabled = false }) => {
             const file = e.dataTransfer.files[0];
             if (file.type.startsWith('image/')) {
                 onFileSelect(file);
-            } else {
-                // Here we might trigger a toast error, but for now just console
-                console.warn('Invalid file type');
             }
         }
     }, [onFileSelect, disabled]);
@@ -59,64 +50,75 @@ const UploadBox = ({ onFileSelect, currentFile, disabled = false }) => {
     }, [onFileSelect, disabled]);
 
     return (
-        <div
-            className={`relative w-full h-72 border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all duration-200 ease-in-out
-        ${isDragging
-                    ? 'border-purple-500 bg-purple-500/10 scale-[1.01]'
-                    : 'border-white/20 hover:border-white/40 bg-zinc-900/50'
-                }
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-      `}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-        >
-            {previewUrl ? (
-                <div className="relative w-full h-full p-4 group">
-                    <img
-                        src={previewUrl}
-                        alt="Preview"
-                        className="w-full h-full object-contain rounded-lg shadow-lg"
-                    />
-                    {!disabled && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                            <p className="text-white font-medium">Click or Drop to Replace</p>
-                        </div>
-                    )}
-                    <input
-                        type="file"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                        onChange={handleFileInput}
-                        accept="image/*"
-                        disabled={disabled}
-                    />
-                </div>
-            ) : (
-                <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
-                    <div className="p-4 bg-zinc-800 rounded-full mb-4 group-hover:bg-zinc-700 transition-colors">
-                        <svg
-                            width="32" height="32"
-                            className={`w-6 h-6 ${isDragging ? 'text-purple-400' : 'text-gray-400'}`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
+        <div className="relative group w-full">
+            {/* Glow effect for the box */}
+            <div className={`absolute -inset-0.5 bg-gradient-to-b from-neo-accent to-blue-500 rounded-2xl opacity-20 blur transition duration-500 ${isDragging ? 'opacity-60' : 'group-hover:opacity-40'}`}></div>
+
+            <div
+                className={`relative w-full aspect-square md:aspect-[4/3] rounded-2xl border-2 flex flex-col items-center justify-center transition-all duration-300
+                    ${isDragging
+                        ? 'border-neo-accent bg-neo-accent/5'
+                        : 'border-neo-accent/30 bg-[#121212]/80 hover:bg-[#121212]/50'
+                    }
+                    ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                `}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => !previewUrl && document.getElementById('file-upload').click()}
+            >
+                {previewUrl ? (
+                    <div className="relative w-full h-full p-2 group/preview">
+                        <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="w-full h-full object-contain rounded-xl"
+                        />
+                        {/* Overlay to replace image */}
+                        {!disabled && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover/preview:opacity-100 transition-opacity rounded-xl backdrop-blur-sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    document.getElementById('file-upload').click();
+                                }}
+                            >
+                                <p className="text-white font-medium">Click to Replace</p>
+                            </div>
+                        )}
                     </div>
-                    <p className="mb-2 text-lg text-gray-300 font-medium">
-                        {isDragging ? 'Drop Image Here' : 'Click or Drag Image to Upload'}
-                    </p>
-                    <p className="text-sm text-gray-500">Supports JPG, PNG (Max 10MB)</p>
-                    <input
-                        type="file"
-                        className="hidden"
-                        onChange={handleFileInput}
-                        accept="image/*"
-                        disabled={disabled}
-                    />
-                </label>
-            )}
+                ) : (
+                    <div className="flex flex-col items-center justify-center p-6 text-center">
+                        <div className="mb-6">
+                            {/* Cloud Icon */}
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white/80">
+                                <path d="M17.5 19C19.9853 19 22 16.9853 22 14.5C22 12.132 20.177 10.244 17.819 10.034C17.657 6.618 14.826 4 11.5 4C8.455 4 5.816 6.222 5.257 9.155C2.316 9.605 0 12.149 0 15.143C0 18.297 2.656 20 5.857 20H17.5V19Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M12 12V16M12 12L10 14M12 12L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={`${isDragging ? 'animate-bounce' : ''}`} />
+                            </svg>
+                        </div>
+
+                        <p className="text-xl font-medium text-white mb-2">
+                            Drag & Drop Img Here
+                        </p>
+
+                        <button className="mt-4 px-6 py-2.5 bg-neo-accent hover:bg-neo-accent-hover text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/20">
+                            Upload Image
+                        </button>
+
+                        <p className="mt-4 text-xs text-gray-400">
+                            Supported formats: PNG, JPEG
+                        </p>
+                    </div>
+                )}
+
+                <input
+                    id="file-upload"
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileInput}
+                    accept="image/*"
+                    disabled={disabled}
+                />
+            </div>
         </div>
     );
 };
