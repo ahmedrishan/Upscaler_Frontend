@@ -57,7 +57,7 @@ const useUpscaler = (addToast) => {
             console.log('UseUpscaler: Upscale response:', upscaleResp);
 
             setResult({
-                original: api.getImageUrl(uploadResp.path),
+                original: api.getUploadUrl(uploadResp.path),
                 upscaled: api.getImageUrl(upscaleResp.output)
             });
 

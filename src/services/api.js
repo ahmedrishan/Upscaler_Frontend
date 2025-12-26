@@ -102,6 +102,16 @@ const api = {
     },
 
     /**
+     * Get URL for an uploaded image (Original)
+     */
+    getUploadUrl: (pathOrUrl) => {
+        if (!pathOrUrl) return '';
+        if (pathOrUrl.startsWith('http')) return pathOrUrl;
+        const filename = pathOrUrl.split(/[/\\]/).pop();
+        return `${BASE_URL}/uploads/${encodeURIComponent(filename)}`;
+    },
+
+    /**
      * Download the result image
      * @param {string} filename - The filename to download
      */
